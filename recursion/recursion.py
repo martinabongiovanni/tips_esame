@@ -81,49 +81,58 @@ def getScore(self, temp_team):
 
 '''
 iTunes:
-Permettere all'utente di inserire una durata complessiva dTOT, espressa in minuti. Alla pressione del bottone 
-"Set di Album", utilizzare un algoritmo ricorsivo per estrarre un set di album dal grafo che abbia le seguenti 
-caratteristiche:
+Permettere all’utente di inserire una durata complessiva dTOT, espressa in minuti. 
+Alla pressione del bottone “Set di Album”, utilizzare un algoritmo ricorsivo per 
+estrarre un set di album dal grafo che abbia le seguenti caratteristiche:
 • includa a1;
 • includa solo album appartenenti alla stessa componente connessa di a1;
 • includa il maggior numero possibile di album;
-• abbia una durata complessiva, definita come la somma della durata degli album in esso contenuti, non
-superiore dTOT.
+• abbia una durata complessiva, definita come la somma della durata degli album 
+    in esso contenuti, non superiore dTOT.
 '''
-def getSetOfNodes(self, a1, soglia):
-    self._bestSet = {}
-    self._maxLen = 0
-
-    parziale = {a1}
-    cc = nx.node_connected_component(self._grafo, a1)
-
-    cc.remove(a1)
-
-    for n in cc:
-        # richiamo la mia ricorsione
-        parziale.add(n)
-        cc.remove(n)
-        self._ricorsione(parziale, cc, soglia)
-        cc.add(n)
-        parziale.remove(n)
-
-    return self._bestSet, self._getDurataTot(self._bestSet)
 
 
-def _ricorsione(self, parziale, rimanenti, soglia):
-    # 1) verifico che parziale sia una soluzione ammissibile, ovvero se viola i vincoli.
-    if self._getDurataTot(parziale) > soglia:
+def get_best_set(self, a1, d_tot):
+    self._nodi_candidati = self.fill_set_album_candidati(a1)  # set di nodi candidati a entrare nel best_set
+    temp_set = set()  # definisco un set temporaneo
+    temp_set.add(a1)  # aggiungo al set temporaneo a1
+    durata_temp = a1.durata
+    self.ricorsione(temp_set, durata_temp, d_tot, 0)
+    return self._best_set
+
+
+def fill_set_album_candidati(self, a1):
+    # individuo il set che rappresenta la componente connessa al nodo a1
+    componente = self.get_componente_connessa(a1)
+    # creo una lista in cui inserisco tutti i nodi candidati a entrare nel best_set,
+    # tranne a1 che ovviamente deve essere parte del best_set
+    nodi_candidati = []
+    for album in componente:
+        if album != a1:
+            nodi_candidati.append(album)
+    return nodi_candidati
+
+
+def ricorsione(self, temp_set, durata_temp, d_tot, indice):
+    # Se la dimensione corrente è migliore, aggiorno la variabile best_set
+    if len(temp_set) > len(self._best_set):
+        self._best_set = temp_set.copy()
+
+    # Se sono finiti i candidati, esco dalla ricorsione
+    if indice == len(self._nodi_candidati):
         return
 
-    # 2) se parziale soddisfa i criteri, allora verifico se è migliore di bestSet
-    if len(parziale) > self._maxLen:
-        self._maxLen = len(parziale)
-        self._bestSet = copy.deepcopy(parziale)
+    # calcolo durata del temp_set con l'inserimento del nuovo candidato
+    for i in range(indice, len(self._nodi_candidati)):
+        album_corrente = self._nodi_candidati[i]
+        nuova_durata = durata_temp + album_corrente.durata
 
-    # 3) aggiungo e faccio ricorsione
-    for r in rimanenti:
-        parziale.add(r)
-        rimanenti.remove(r)
-        self._ricorsione(parziale, rimanenti, soglia)
-        parziale.remove(r)
-        rimanenti.add(r)
+        # se la durata del nuovo temp_set è inferiore a dTot
+        if nuova_durata <= d_tot:
+            # Aggiungo l'album_corrente al temp_set e continuo la ricorsione
+            temp_set.add(album_corrente)
+            self.ricorsione(temp_set, nuova_durata, d_tot, i + 1)
+            # Backtracking: tolgo album_corrente e provo altri
+            temp_set.remove(album_corrente)
+            return
+

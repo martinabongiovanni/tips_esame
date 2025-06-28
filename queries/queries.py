@@ -65,3 +65,40 @@ query = f"""select of1.order_id as source, of2.order_id as target, of1.tot+of2.t
                     group by o1.order_id) of2
             where of1.order_id != of2.order_id and of1.order_date > of2.order_date and
             DATEDIFF(of1.order_date, of2.order_date) < %s"""
+
+'''
+iTunes:
+Alla pressione del bottone “Crea Grafo”, si crei un grafo semplice, non orientato e non
+pesato, i cui vertici sono tutti gli album musicali (tabella Album) la cui durata (intesa
+come somma delle durate dei brani ad esso appartenenti) sia superiore a d (durata in minuti).
+'''
+query = """
+            SELECT *
+            FROM (SELECT a.AlbumId, a.Title, a.ArtistId, SUM(t.Milliseconds)/60000 as durata
+                FROM track t, album a
+                WHERE t.AlbumId = a.AlbumId
+                GROUP BY a.AlbumId
+                ORDER BY durata) as tabella
+            WHERE tabella.durata > %s"""
+
+'''
+iTunes:
+Due album a1 e a2 sono collegati tra loro se almeno una canzone di a1 e una canzone di a2
+sono state inserite da un utente all’interno di una stessa playlist (tabella PlaylistTrack).
+'''
+query = """
+            SELECT DISTINCT tab_album_playlist_1.AlbumId as a1, tab_album_playlist_2.AlbumId as a2
+            FROM (SELECT t.AlbumId, p.PlaylistId 
+                FROM track t, playlisttrack p 
+                WHERE p.TrackId = t.TrackId
+                GROUP BY t.AlbumId, p.PlaylistId) as tab_album_playlist_1
+                JOIN
+                (SELECT t.AlbumId, p.PlaylistId
+                FROM track t, playlisttrack p 
+                WHERE p.TrackId = t.TrackId
+                GROUP BY t.AlbumId, p.PlaylistId) as tab_album_playlist_2
+                ON tab_album_playlist_1.PlaylistId = tab_album_playlist_2.PlaylistId
+            WHERE tab_album_playlist_1.PlaylistId = tab_album_playlist_2.PlaylistId
+                AND tab_album_playlist_1.AlbumId > tab_album_playlist_2.AlbumId
+            GROUP BY tab_album_playlist_1.AlbumId, tab_album_playlist_2.AlbumId
+            ORDER BY tab_album_playlist_1.AlbumId"""
