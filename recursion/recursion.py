@@ -9,6 +9,9 @@ relativo peso).
 • Un arco può essere aggiunto al percorso se e solo se il suo peso è maggiore uguale a tutti i pesi degli archi già
 aggiunti al percorso.
 '''
+from copy import deepcopy
+
+
 def getPercorsoMaxRecursive(self, prodotto):
     nodo = self._idMap[int(prodotto)]
     self._percorsoMax = []
@@ -136,3 +139,37 @@ def ricorsione(self, temp_set, durata_temp, d_tot, indice):
             temp_set.remove(album_corrente)
             return
 
+'''
+LAB_14:
+l’applicazione visualizza il cammino più lungo partendo da un nodo. Il nodo è selezionato
+dall’apposito menù a tendina.
+'''
+def get_longest_path(self, order_id):
+    starting_node = self._id_map_ordini[int(order_id)]
+    self._percorso_max = []
+    percorso_temp = []
+    percorso_temp.append(starting_node)
+    for vicino in self._grafo.successors(starting_node):
+        percorso_temp.append(vicino)
+        self.ricorsione(percorso_temp)
+        percorso_temp.pop()
+    return self._percorso_max
+
+
+def ricorsione(self, percorso_temp):
+    if len(percorso_temp) > len(self._percorso_max):
+        self._percorso_max = deepcopy(percorso_temp)
+    ultimo = percorso_temp[-1]
+    for vicino in self._grafo.successors(ultimo):
+        if vicino not in percorso_temp:
+            percorso_temp.append(vicino)
+            self.ricorsione(percorso_temp)
+            percorso_temp.pop()
+
+'''
+LAB_14:
+si implementi una procedura ricorsiva che calcoli un percorso di peso massimo. 
+Il vertice di partenza è quello selezionato nel punto 1.c e il peso degli archi 
+nel percorso deve essere strettamente decrescente.
+N.B.: un vertice può entrare una volta sola nel percorso
+'''
