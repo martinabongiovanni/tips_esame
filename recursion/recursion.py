@@ -173,3 +173,45 @@ Il vertice di partenza è quello selezionato nel punto 1.c e il peso degli archi
 nel percorso deve essere strettamente decrescente.
 N.B.: un vertice può entrare una volta sola nel percorso
 '''
+def get_heavier_path(self, order_id):
+    starting_node = self._id_map_ordini[int(order_id)]
+    self._heavier_path = []
+    self._best_weight = 0
+
+    parziale = []
+    parziale.append(starting_node)
+    for vicino in self._grafo.successors(starting_node):
+        parziale.append(vicino)
+        self.ricorsione_by_peso(parziale)
+        parziale.pop()
+    return self._heavier_path
+
+
+def ricorsione_by_peso(self, parziale):
+    if (new_peso := self.peso(parziale)) > self._best_weight:
+        self._best_weight = new_peso
+        self._heavier_path = deepcopy(parziale)
+    ultimo = parziale[-1]
+    for vicino in self._grafo.successors(ultimo):
+        if self.is_valid(vicino, parziale):
+            parziale.append(vicino)
+            self.ricorsione_by_peso(parziale)
+            parziale.pop()
+
+
+def is_valid(self, vicino, parziale):
+    # il nodo vicino non deve essere già contenuto nella lista parziale
+    # il peso dell'arco che voglio inserire deve essere minore di quello dell'ultimo arco inserito nel percorso parziale
+    peso_corrente = self._grafo[parziale[-1]][vicino]["weight"]
+    peso_precedente = self._grafo[parziale[-2]][parziale[-1]]["weight"]
+    if vicino not in parziale and peso_corrente < peso_precedente:
+        return True
+    return False
+
+
+def peso(self, parziale):
+    # calcolo il peso della lista parziale per ogni arco
+    peso = 0
+    for i in range(0, len(parziale) - 1):
+        peso += self._grafo[parziale[i]][parziale[i + 1]['weight']]
+    return peso
