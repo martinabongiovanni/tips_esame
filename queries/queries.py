@@ -1,3 +1,6 @@
+'''
+https://networkx.org/documentation/stable/reference/introduction.html#networkx-basics
+'''
 """
 Lab09
 Alla pressione del bottone, creare un grafo che rappresenti gli aeroporti collegati da almeno un volo, e distanti in
